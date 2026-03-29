@@ -14,20 +14,32 @@ exports.leadStatusEnum = zod_1.z.enum([
     "closed",
 ]);
 exports.createLeadSchema = zod_1.z.object({
-    name: zod_1.z.string().min(2, "Name is required"),
+    name: zod_1.z.string().min(2, "Name must be at least 2 characters").max(255, "Name must be less than 255 characters").trim(),
     email: zod_1.z
         .string()
-        .email("Invalid email format"),
+        .email("Invalid email format")
+        .toLowerCase()
+        .trim(),
     phone: zod_1.z
         .string()
-        .min(10, "Phone must be at least 10 digits"),
+        .regex(/^\+?[1-9]\d{9,14}$/, "Phone must be a valid number with 10-15 digits, optionally starting with +")
+        .transform((val) => val.replace(/\D/g, '').slice(-15)),
     source: exports.leadSourceEnum,
-    status: exports.leadStatusEnum.optional(),
+    status: exports.leadStatusEnum.optional().default("new"),
 });
 exports.updateLeadSchema = zod_1.z.object({
-    name: zod_1.z.string().min(2).optional(),
-    email: zod_1.z.string().email().optional(),
-    phone: zod_1.z.string().min(10).optional(),
+    name: zod_1.z.string().min(2, "Name must be at least 2 characters").max(255, "Name must be less than 255 characters").trim().optional(),
+    email: zod_1.z
+        .string()
+        .email("Invalid email format")
+        .toLowerCase()
+        .trim()
+        .optional(),
+    phone: zod_1.z
+        .string()
+        .regex(/^\+?[1-9]\d{9,14}$/, "Phone must be a valid number with 10-15 digits, optionally starting with +")
+        .transform((val) => val.replace(/\D/g, '').slice(-15))
+        .optional(),
     source: exports.leadSourceEnum.optional(),
     status: exports.leadStatusEnum.optional(),
 });

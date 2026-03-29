@@ -28,7 +28,12 @@ exports.createLead = (0, asyncHandler_1.default)(async (req, res, next) => {
     }
 });
 exports.getAllLeadsController = (0, asyncHandler_1.default)(async (req, res, next) => {
-    const leads = await (0, lead_service_1.getAllLeads)();
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    if (page < 1 || limit < 1 || limit > 100) {
+        throw new apiError_1.ApiError(400, "Invalid pagination parameters");
+    }
+    const leads = await (0, lead_service_1.getAllLeads)(page, limit);
     return res.status(200).json(new apiResponse_1.ApiResponse(200, leads, "Leads retrieved successfully"));
 });
 exports.getLeadByIdController = (0, asyncHandler_1.default)(async (req, res, next) => {
@@ -68,12 +73,16 @@ exports.filterLeadsByStatusController = (0, asyncHandler_1.default)(async (req, 
 });
 exports.searchLeadsController = (0, asyncHandler_1.default)(async (req, res, next) => {
     const { q } = req.query;
-    if (!q) {
-        throw new apiError_1.ApiError(400, "Search query is required");
+    if (!q || typeof q !== 'string' || q.trim().length === 0) {
+        throw new apiError_1.ApiError(400, "Search query is required and cannot be empty");
     }
-    const nameResults = await (0, lead_service_1.searchLeads)(q);
-    const emailResults = await (0, lead_service_1.searchLeadsByEmail)(q);
-    const allResults = [...nameResults, ...emailResults];
-    const uniqueResults = allResults.filter((lead, index, self) => index === self.findIndex((l) => l.id === lead.id));
-    return res.status(200).json(new apiResponse_1.ApiResponse(200, uniqueResults, `Search results for: ${q}`));
+    if (q.length > 100) {
+        throw new apiError_1.ApiError(400, "Search query is too long (max 100 characters)");
+    }
+    const query = q.trim();
+    const nameResults = await (0, lead_service_1.searchLeads)(query);
+    const emailResults = await (0, lead_service_1.searchLeadsByEmail)(query);
+    const results = [...nameResults, ...emailResults];
+    const unique = results.filter((lead, index, self) => index === self.findIndex(l => l.id === lead.id));
+    return res.status(200).json(new apiResponse_1.ApiResponse(200, unique, `Search results for: ${query}`));
 });

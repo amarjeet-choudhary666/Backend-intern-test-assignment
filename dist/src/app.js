@@ -9,6 +9,7 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const leads_routes_1 = __importDefault(require("./routes/leads.routes"));
 const tags_routes_1 = __importDefault(require("./routes/tags.routes"));
 const tasks_routes_1 = __importDefault(require("./routes/tasks.routes"));
+const apiError_1 = require("./utils/apiError");
 const app = (0, express_1.default)();
 exports.app = app;
 app.use(express_1.default.json({ limit: "10kb" }));
@@ -23,4 +24,18 @@ app.get("/health", (req, res) => {
         message: "SynQ CRM API is running",
         timestamp: new Date().toISOString(),
     });
+});
+app.use((err, req, res, next) => {
+    let error = err;
+    if (!(error instanceof apiError_1.ApiError)) {
+        const statusCode = error.statusCode || error instanceof Error ? 400 : 500;
+        const message = error.message || "Something went wrong";
+        error = new apiError_1.ApiError(statusCode, message, error.errors || [], err.stack);
+    }
+    const response = {
+        ...error,
+        message: error.message,
+        ...(process.env.NODE_ENV === "development" ? { stack: error.stack } : {}),
+    };
+    return res.status(error.statusCode).json(response);
 });

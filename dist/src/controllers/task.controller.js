@@ -16,10 +16,10 @@ exports.createTaskController = (0, asyncHandler_1.default)(async (req, res) => {
             error: result.error.format()
         });
     }
-    const effectiveDueDate = result.data.dueDate
+    const dueDate = result.data.dueDate
         ? new Date(result.data.dueDate)
         : new Date(Date.now() + 24 * 60 * 60 * 1000);
-    const task = await (0, task_service_1.createTask)(result.data.leadId, result.data.title, effectiveDueDate);
+    const task = await (0, task_service_1.createTask)(result.data.leadId, result.data.title, dueDate);
     return res.status(201).json(new apiResponse_1.ApiResponse(201, task, "Task created successfully"));
 });
 exports.getTasksForLeadController = (0, asyncHandler_1.default)(async (req, res) => {

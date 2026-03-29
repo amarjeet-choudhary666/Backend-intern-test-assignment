@@ -58,8 +58,13 @@ const searchLeads = async (query) => {
         .where((0, drizzle_orm_1.ilike)(schema_1.leads.name, `%${query}%`));
 };
 exports.searchLeads = searchLeads;
-const getAllLeads = async () => {
-    return db_1.db.select().from(schema_1.leads);
+const getAllLeads = async (page = 1, limit = 50) => {
+    const offset = (page - 1) * limit;
+    return db_1.db
+        .select()
+        .from(schema_1.leads)
+        .limit(limit)
+        .offset(offset);
 };
 exports.getAllLeads = getAllLeads;
 const getLeadById = async (id) => {

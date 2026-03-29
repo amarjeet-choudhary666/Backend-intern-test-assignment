@@ -9,6 +9,9 @@ const createTask = async (leadId, title, dueDate, dbClient = db_1.db) => {
     if (lead.length === 0) {
         throw new Error("Lead not found");
     }
+    if (dueDate <= new Date()) {
+        throw new Error("Due date must be in the future");
+    }
     const [newTask] = await dbClient
         .insert(schema_1.tasks)
         .values({
@@ -29,14 +32,21 @@ const getTasksForLead = async (leadId) => {
 };
 exports.getTasksForLead = getTasksForLead;
 const markTaskAsCompleted = async (taskId) => {
+    const existingTask = await db_1.db
+        .select()
+        .from(schema_1.tasks)
+        .where((0, drizzle_orm_1.eq)(schema_1.tasks.id, taskId));
+    if (existingTask.length === 0) {
+        throw new Error("Task not found");
+    }
+    if (existingTask[0].status === "completed") {
+        throw new Error("Task is already completed");
+    }
     const [updatedTask] = await db_1.db
         .update(schema_1.tasks)
         .set({ status: "completed" })
         .where((0, drizzle_orm_1.eq)(schema_1.tasks.id, taskId))
         .returning();
-    if (!updatedTask) {
-        throw new Error("Task not found");
-    }
     return updatedTask;
 };
 exports.markTaskAsCompleted = markTaskAsCompleted;
