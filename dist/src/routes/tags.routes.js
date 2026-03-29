@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const tag_controller_1 = require("../controllers/tag.controller");
+const router = (0, express_1.Router)();
+router.post("/", tag_controller_1.createTagController);
+router.get("/", tag_controller_1.getAllTagsController);
+router.post("/assign", tag_controller_1.assignTagToLeadController);
+router.post("/assign-multiple", tag_controller_1.assignMultipleTagsToLeadController);
+router.delete("/remove", tag_controller_1.removeTagFromLeadController);
+router.get("/lead/:leadId", tag_controller_1.getTagsForLeadController);
+exports.default = router;

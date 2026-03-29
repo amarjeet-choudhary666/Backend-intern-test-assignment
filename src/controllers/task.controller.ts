@@ -13,12 +13,19 @@ import { ApiResponse } from "../utils/apiResponse";
 import { ApiError } from "../utils/apiError";
 
 export const createTaskController = asyncHandler(async(req, res) => {
-  const { leadId, title, dueDate } = createTaskSchema.parse(req.body);
-  const effectiveDueDate = dueDate
-    ? new Date(dueDate)
+  const result = createTaskSchema.safeParse(req.body);
+  
+  if (!result.success) {
+    return res.status(400).json({
+      error: result.error.format()
+    });
+  }
+  
+  const effectiveDueDate = result.data.dueDate
+    ? new Date(result.data.dueDate)
     : new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-  const task = await createTask(leadId, title, effectiveDueDate);
+  const task = await createTask(result.data.leadId, result.data.title, effectiveDueDate);
   
   return res.status(201).json(
     new ApiResponse(201, task, "Task created successfully")

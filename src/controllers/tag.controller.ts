@@ -17,8 +17,15 @@ import { ApiResponse } from "../utils/apiResponse";
 import { ApiError } from "../utils/apiError";
 
 export const createTagController = asyncHandler(async(req, res) => {
-  const { name } = createTagSchema.parse(req.body);
-  const tag = await createTag(name);
+  const result = createTagSchema.safeParse(req.body);
+  
+  if (!result.success) {
+    return res.status(400).json({
+      error: result.error.format()
+    });
+  }
+  
+  const tag = await createTag(result.data.name);
   
   res.status(201).json(
     new ApiResponse(201, tag, "Tag created successfully")
@@ -33,8 +40,15 @@ export const getAllTagsController = asyncHandler(async(req, res) => {
 });
 
 export const assignTagToLeadController = asyncHandler(async(req, res) => {
-  const { leadId, tagName } = assignTagSchema.parse(req.body);
-  const assignment = await assignTagToLead(leadId, tagName);
+  const result = assignTagSchema.safeParse(req.body);
+  
+  if (!result.success) {
+    return res.status(400).json({
+      error: result.error.format()
+    });
+  }
+  
+  const assignment = await assignTagToLead(result.data.leadId, result.data.tagName);
   
   res.status(201).json(
     new ApiResponse(201, assignment, "Tag assigned to lead successfully")
@@ -42,8 +56,15 @@ export const assignTagToLeadController = asyncHandler(async(req, res) => {
 });
 
 export const assignMultipleTagsToLeadController = asyncHandler(async(req, res) => {
-  const { leadId, tagNames } = assignMultipleTagsSchema.parse(req.body);
-  const assignments = await assignMultipleTagsToLead(leadId, tagNames);
+  const result = assignMultipleTagsSchema.safeParse(req.body);
+  
+  if (!result.success) {
+    return res.status(400).json({
+      error: result.error.format()
+    });
+  }
+  
+  const assignments = await assignMultipleTagsToLead(result.data.leadId, result.data.tagNames);
   
   res.status(201).json(
     new ApiResponse(201, assignments, "Tags assigned to lead successfully")
@@ -51,8 +72,15 @@ export const assignMultipleTagsToLeadController = asyncHandler(async(req, res) =
 });
 
 export const removeTagFromLeadController = asyncHandler(async(req, res) => {
-  const { leadId, tagId } = removeTagSchema.parse(req.body);
-  const removed = await removeTagFromLead(leadId, tagId);
+  const result = removeTagSchema.safeParse(req.body);
+  
+  if (!result.success) {
+    return res.status(400).json({
+      error: result.error.format()
+    });
+  }
+  
+  const removed = await removeTagFromLead(result.data.leadId, result.data.tagId);
   
   if (!removed) {
     throw new ApiError(404, "Tag assignment not found");

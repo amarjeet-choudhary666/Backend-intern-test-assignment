@@ -14,9 +14,16 @@ import { ApiResponse } from "../utils/apiResponse";
 import { ApiError } from "../utils/apiError";
 
 export const createLead = asyncHandler(async(req, res, next) => {
+    const result = createLeadSchema.safeParse(req.body);
+    
+    if (!result.success) {
+        return res.status(400).json({
+            error: result.error.format()
+        });
+    }
+    
     try {
-        const data = createLeadSchema.parse(req.body);
-        const lead = await createLeadService(data);
+        const lead = await createLeadService(result.data);
 
         if(!lead){
             throw new ApiError(400, "Failed to create lead");
@@ -52,10 +59,16 @@ export const getLeadByIdController = asyncHandler(async(req, res, next) => {
 });
 
 export const updateLeadController = asyncHandler(async(req, res, next) => {
-    const { id } = req.params;
-    const data = updateLeadSchema.parse(req.body);
+    const result = updateLeadSchema.safeParse(req.body);
     
-    const updatedLead = await updateLead(Array.isArray(id) ? id[0] : id, data);
+    if (!result.success) {
+        return res.status(400).json({
+            error: result.error.format()
+        });
+    }
+    
+    const { id } = req.params;
+    const updatedLead = await updateLead(Array.isArray(id) ? id[0] : id, result.data);
     
     if (!updatedLead) {
         throw new ApiError(404, "Lead not found");
