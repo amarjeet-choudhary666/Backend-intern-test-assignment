@@ -4,80 +4,258 @@ A simplified backend system for managing leads, tags, and tasks, similar to a mi
 
 ## Features
 
-- **Lead Management**: CRUD operations for leads with validation
-- **Tag System**: Create and assign tags to leads
-- **Task Management**: Create and manage tasks for leads
-- **Search & Filter**: Search leads by name/email and filter by status
-- **Automatic Task Creation**: Creates a default follow-up task when a new lead is created
+- Lead management (CRUD)
+- Tag creation + assign/remove tags on leads
+- Task creation + completion tracking
+- Search by lead name/email
+- Filter leads by status
+- Built with Express + TypeScript + PostgreSQL + Drizzle
 
-## Tech Stack
+---
 
-- **Node.js** with Express.js
-- **TypeScript**
-- **PostgreSQL** with Drizzle ORM
-- **Zod** for validation
-- **UUID** for primary keys
+## Quick Start
 
-## Setup Instructions
+### 1. Prerequisites
 
-### Prerequisites
+- Node.js v16+ (recommended)
+- PostgreSQL database
+- `npm` (or `yarn`)
 
-- Node.js (v16 or higher)
-- PostgreSQL
-- npm or yarn
+### 2. Initialize project
 
-### Installation
-
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Set up environment variables:
-   ```bash
-   cp .env.example .env
-   ```
-   Update `.env` with your database configuration:
-   ```
-   DATABASE_URL=postgresql://username:password@localhost:5432/synq_crm
-   ```
-
-4. Set up the database:
-   ```bash
-   npm run db:generate
-   npm run db:migrate
-   ```
-
-5. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-The API will be available at `http://localhost:3000`
-
-## API Documentation
-
-### Base URL
-```
-http://localhost:3000/api
+```bash
+cd "d:/gurgaon job/backend"
+npm install
 ```
 
-### Health Check
-```
-GET /health
+### 3. Environment
+
+Create `.env` (or copy from example if available):
+
+```bash
+copy .env.example .env
 ```
 
-## Lead Management
+Set:
 
-### Create a Lead
+```
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DATABASE
+PORT=4000
+```
+
+### 4. Database migration
+
+```bash
+npm run db:sync
+# or separately:
+# npm run generate
+# npm run migrate
+```
+
+### 5. Start server
+
+```bash
+npm run dev
+```
+
+Default: `http://localhost:4000`
+
+---
+
+## Health check
+
 ```http
-POST /api/leads
-Content-Type: application/json
+GET http://localhost:4000/health
+```
 
+Response:
+
+```json
 {
-  "name": "John Doe",
-  "email": "john@example.com",
+  "status": "OK",
+  "message": "SynQ CRM API is running",
+  "timestamp": "2026-..."
+}
+```
+
+---
+
+## Base API path
+
+`http://localhost:4000/api`
+
+---
+
+## Leads endpoints
+
+### Create lead
+
+```bash
+curl -X POST "http://localhost:4000/api/leads" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"John Doe","email":"john@example.com","status":"open"}'
+```
+
+### Get all leads
+
+```bash
+curl "http://localhost:4000/api/leads"
+```
+
+### Get lead by ID
+
+```bash
+curl "http://localhost:4000/api/leads/<leadId>"
+```
+
+### Update lead
+
+```bash
+curl -X PUT "http://localhost:4000/api/leads/<leadId>" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"John Doe Updated","email":"john.doe@new.com","status":"contacted"}'
+```
+
+### Delete lead
+
+```bash
+curl -X DELETE "http://localhost:4000/api/leads/<leadId>"
+```
+
+### Filter leads by status
+
+```bash
+curl "http://localhost:4000/api/leads/filter/status?status=open"
+```
+
+### Search leads (name or email)
+
+```bash
+curl "http://localhost:4000/api/leads/search?q=john"
+```
+
+---
+
+## Tags endpoints
+
+### Create tag
+
+```bash
+curl -X POST "http://localhost:4000/api/tags" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"VIP"}'
+```
+
+### Get all tags
+
+```bash
+curl "http://localhost:4000/api/tags"
+```
+
+### Assign tag to lead
+
+```bash
+curl -X POST "http://localhost:4000/api/tags/assign" \
+  -H "Content-Type: application/json" \
+  -d '{"leadId":"<leadId>","tagName":"VIP"}'
+```
+
+### Assign multiple tags to lead
+
+```bash
+curl -X POST "http://localhost:4000/api/tags/assign-multiple" \
+  -H "Content-Type: application/json" \
+  -d '{"leadId":"<leadId>","tagNames":["VIP","Priority"]}'
+```
+
+### Remove tag from lead
+
+```bash
+curl -X DELETE "http://localhost:4000/api/tags/remove" \
+  -H "Content-Type: application/json" \
+  -d '{"leadId":"<leadId>","tagId":"<tagId>"}'
+```
+
+### Get tags for lead
+
+```bash
+curl "http://localhost:4000/api/tags/lead/<leadId>"
+```
+
+---
+
+## Tasks endpoints
+
+### Create task for lead
+
+```bash
+curl -X POST "http://localhost:4000/api/tasks" \
+  -H "Content-Type: application/json" \
+  -d '{"leadId":"<leadId>","title":"Follow up call","dueDate":"2026-04-01T12:00:00.000Z"}'
+```
+
+- `dueDate` is optional, defaults to 24h later if omitted.
+
+### Get tasks for lead
+
+```bash
+curl "http://localhost:4000/api/tasks/lead/<leadId>"
+```
+
+### Get task by ID
+
+```bash
+curl "http://localhost:4000/api/tasks/<taskId>"
+```
+
+### Mark task complete
+
+```bash
+curl -X PATCH "http://localhost:4000/api/tasks/<taskId>/complete"
+```
+
+### Delete task
+
+```bash
+curl -X DELETE "http://localhost:4000/api/tasks/<taskId>"
+```
+
+---
+
+## API response format
+
+All JSON API responses follow this structure:
+
+```json
+{
+  "statusCode": 200,
+  "data": ...,
+  "message": "..."
+}
+```
+
+Errors return with standard HTTP status codes and JSON error details from `ApiError`.
+
+---
+
+## Troubleshooting
+
+- Ensure `DATABASE_URL` is correct
+- Ensure Postgres driver can connect and DB is running
+- Check console logs (`.env` and `node` output)
+- Re-run migrations if schema mismatch
+
+---
+
+## Postman collection
+
+You can create a Postman collection manually with the endpoints above.
+
+1. New collection: `SynQ CRM Backend`
+2. Add requests for each path
+3. Set environment var `baseUrl` to `http://localhost:4000`
+4. Use `{{baseUrl}}/api/leads`, etc.
+,
   "phone": "+1234567890",
   "source": "linkedin",
   "status": "new"
