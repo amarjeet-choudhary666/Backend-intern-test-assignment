@@ -52,7 +52,6 @@ export const deleteLead = async (id: string) => {
 
 
 export const filterByStatus = async (status: string) => {
-  // Validate the status against enum
   const validStatus = leadStatusEnum.parse(status);
   
   return db

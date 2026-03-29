@@ -28,7 +28,7 @@ export const createLeadSchema = z.object({
 
   source: leadSourceEnum,
 
-  status: leadStatusEnum.optional(), // default = "new"
+  status: leadStatusEnum.optional(),
 });
 
 

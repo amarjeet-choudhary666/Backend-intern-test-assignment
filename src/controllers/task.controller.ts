@@ -16,7 +16,7 @@ export const createTaskController = asyncHandler(async(req, res) => {
   const { leadId, title, dueDate } = createTaskSchema.parse(req.body);
   const effectiveDueDate = dueDate
     ? new Date(dueDate)
-    : new Date(Date.now() + 24 * 60 * 60 * 1000); // auto 24h later
+    : new Date(Date.now() + 24 * 60 * 60 * 1000);
 
   const task = await createTask(leadId, title, effectiveDueDate);
   

@@ -99,7 +99,6 @@ export const searchLeadsController = asyncHandler(async(req, res, next) => {
     const nameResults = await searchLeads(q as string);
     const emailResults = await searchLeadsByEmail(q as string);
     
-    // Combine and remove duplicates
     const allResults = [...nameResults, ...emailResults];
     const uniqueResults = allResults.filter((lead, index, self) => 
         index === self.findIndex((l) => l.id === lead.id)
