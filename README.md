@@ -99,8 +99,11 @@ curl -X POST "http://localhost:4000/api/leads" \
 ### Get all leads
 
 ```bash
-curl "http://localhost:4000/api/leads"
+curl "http://localhost:4000/api/leads?page=1&limit=10"
 ```
+
+- `page`: Page number (default: 1)
+- `limit`: Items per page (default: 50, max: 100)
 
 ### Get lead by ID
 

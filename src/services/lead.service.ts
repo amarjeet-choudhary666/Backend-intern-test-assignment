@@ -70,8 +70,14 @@ export const searchLeads = async (query: string) => {
     );
 };
 
-export const getAllLeads = async () => {
-  return db.select().from(leads);
+export const getAllLeads = async (page: number = 1, limit: number = 50) => {
+  const offset = (page - 1) * limit;
+  
+  return db
+    .select()
+    .from(leads)
+    .limit(limit)
+    .offset(offset);
 };
 
 export const getLeadById = async (id: string) => {

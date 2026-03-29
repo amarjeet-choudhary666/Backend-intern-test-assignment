@@ -21,11 +21,11 @@ export const createTaskController = asyncHandler(async(req, res) => {
     });
   }
   
-  const effectiveDueDate = result.data.dueDate
-    ? new Date(result.data.dueDate)
+  const dueDate = result.data.dueDate 
+    ? new Date(result.data.dueDate) 
     : new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-  const task = await createTask(result.data.leadId, result.data.title, effectiveDueDate);
+  const task = await createTask(result.data.leadId, result.data.title, dueDate);
   
   return res.status(201).json(
     new ApiResponse(201, task, "Task created successfully")

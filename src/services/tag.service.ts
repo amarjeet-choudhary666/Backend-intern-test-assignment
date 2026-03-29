@@ -68,12 +68,5 @@ export const getTagsForLead = async (leadId: string) => {
 };
 
 export const assignMultipleTagsToLead = async (leadId: string, tagNames: string[]) => {
-  const assignments = [];
-  
-  for (const tagName of tagNames) {
-    const assignment = await assignTagToLead(leadId, tagName);
-    assignments.push(assignment);
-  }
-
-  return assignments;
+  return Promise.all(tagNames.map(tagName => assignTagToLead(leadId, tagName)));
 };

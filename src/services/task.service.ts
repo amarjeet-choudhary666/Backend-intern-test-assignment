@@ -13,6 +13,10 @@ export const createTask = async (
     throw new Error("Lead not found");
   }
 
+  if (dueDate <= new Date()) {
+    throw new Error("Due date must be in the future");
+  }
+
   const [newTask] = await dbClient
     .insert(tasks)
     .values({
@@ -34,15 +38,24 @@ export const getTasksForLead = async (leadId: string) => {
 };
 
 export const markTaskAsCompleted = async (taskId: string) => {
+  const existingTask = await db
+    .select()
+    .from(tasks)
+    .where(eq(tasks.id, taskId));
+
+  if (existingTask.length === 0) {
+    throw new Error("Task not found");
+  }
+
+  if (existingTask[0].status === "completed") {
+    throw new Error("Task is already completed");
+  }
+
   const [updatedTask] = await db
     .update(tasks)
     .set({ status: "completed" })
     .where(eq(tasks.id, taskId))
     .returning();
-
-  if (!updatedTask) {
-    throw new Error("Task not found");
-  }
 
   return updatedTask;
 };

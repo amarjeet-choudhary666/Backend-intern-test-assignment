@@ -39,7 +39,14 @@ export const createLead = asyncHandler(async(req, res, next) => {
 });
 
 export const getAllLeadsController = asyncHandler(async(req, res, next) => {
-    const leads = await getAllLeads();
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 50;
+    
+    if (page < 1 || limit < 1 || limit > 100) {
+        throw new ApiError(400, "Invalid pagination parameters");
+    }
+    
+    const leads = await getAllLeads(page, limit);
     return res.status(200).json(
         new ApiResponse(200, leads, "Leads retrieved successfully")
     );
@@ -105,19 +112,24 @@ export const filterLeadsByStatusController = asyncHandler(async(req, res, next) 
 export const searchLeadsController = asyncHandler(async(req, res, next) => {
     const { q } = req.query;
     
-    if (!q) {
-        throw new ApiError(400, "Search query is required");
+    if (!q || typeof q !== 'string' || q.trim().length === 0) {
+        throw new ApiError(400, "Search query is required and cannot be empty");
     }
     
-    const nameResults = await searchLeads(q as string);
-    const emailResults = await searchLeadsByEmail(q as string);
+    if (q.length > 100) {
+        throw new ApiError(400, "Search query is too long (max 100 characters)");
+    }
     
-    const allResults = [...nameResults, ...emailResults];
-    const uniqueResults = allResults.filter((lead, index, self) => 
-        index === self.findIndex((l) => l.id === lead.id)
+    const query = q.trim();
+    const nameResults = await searchLeads(query);
+    const emailResults = await searchLeadsByEmail(query);
+    
+    const results = [...nameResults, ...emailResults];
+    const unique = results.filter((lead, index, self) => 
+        index === self.findIndex(l => l.id === lead.id)
     );
     
     return res.status(200).json(
-        new ApiResponse(200, uniqueResults, `Search results for: ${q}`)
+        new ApiResponse(200, unique, `Search results for: ${query}`)
     );
 });
