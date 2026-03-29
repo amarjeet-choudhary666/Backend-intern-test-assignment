@@ -2,13 +2,18 @@ import { eq } from "drizzle-orm";
 import { db } from "../db/db";
 import { tasks, leads } from "../db/schema";
 
-export const createTask = async (leadId: string, title: string, dueDate: Date) => {
-  const lead = await db.select().from(leads).where(eq(leads.id, leadId));
+export const createTask = async (
+  leadId: string,
+  title: string,
+  dueDate: Date,
+  dbClient: any = db
+) => {
+  const lead = await dbClient.select().from(leads).where(eq(leads.id, leadId));
   if (lead.length === 0) {
     throw new Error("Lead not found");
   }
 
-  const [newTask] = await db
+  const [newTask] = await dbClient
     .insert(tasks)
     .values({
       leadId,
@@ -42,11 +47,14 @@ export const markTaskAsCompleted = async (taskId: string) => {
   return updatedTask;
 };
 
-export const createDefaultTask = async (leadId: string) => {
+export const createDefaultTask = async (
+  leadId: string,
+  dbClient: any = db
+) => {
   const dueDate = new Date();
   dueDate.setHours(dueDate.getHours() + 24);
 
-  return createTask(leadId, "Follow up within 24 hours", dueDate);
+  return createTask(leadId, "Follow up within 24 hours", dueDate, dbClient);
 };
 
 export const getTaskById = async (taskId: string) => {

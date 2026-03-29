@@ -5,20 +5,22 @@ import { createDefaultTask } from "./task.service";
 import { leadStatusEnum } from "../validation/leads.validation";
 
 export const createLeadService = async (data: any) => {
-  const existing = await db
-    .select()
-    .from(leads)
-    .where(eq(leads.email, data.email));
+  return db.transaction(async (tx) => {
+    const existing = await tx
+      .select()
+      .from(leads)
+      .where(eq(leads.email, data.email));
 
-  if (existing.length > 0) {
-    throw new Error("Lead with this email already exists");
-  }
+    if (existing.length > 0) {
+      throw new Error("Lead with this email already exists");
+    }
 
-  const [newLead] = await db.insert(leads).values(data).returning();
+    const [newLead] = await tx.insert(leads).values(data).returning();
 
-  await createDefaultTask(newLead.id);
+    await createDefaultTask(newLead.id, tx);
 
-  return newLead;
+    return newLead;
+  });
 };
 
 
